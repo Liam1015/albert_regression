@@ -1,0 +1,20 @@
+***** Eval results ./output/model.ckpt-4000 *****
+eval_mse = 2.752397e-05
+global_step = 4000
+loss = 2.7499816e-05
+***** Eval results ./output/model.ckpt-5000 *****
+eval_mse = 1.2227394e-05
+global_step = 5000
+loss = 1.2222255e-05
+***** Eval results ./output/model.ckpt-6000 *****
+eval_mse = 1.3943798e-05
+global_step = 6000
+loss = 1.3932263e-05
+***** Eval results ./output/model.ckpt-7000 *****
+eval_mse = 8.392499e-06
+global_step = 7000
+loss = 8.388464e-06
+***** Eval results ./output/model.ckpt-7090 *****
+eval_mse = 7.8098e-06
+global_step = 7090
+loss = 7.806516e-06
