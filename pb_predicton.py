@@ -28,10 +28,11 @@ flags.DEFINE_string("vocab_file", "albert_tiny/vocab.txt",
 class bertPredict(object):
     def __init__(self, pb_path, vocab_path):
         # pb_path = './model_pb'
-        # subdirs = [x for x in Path(pb_path).iterdir()
-        #            if x.is_dir() and 'temp' not in str(x)]
-        # latest = str(sorted(subdirs)[-1])
-        latest = str(pb_path)
+        self.pb_path = pb_path
+        subdirs = [x for x in Path(self.pb_path).iterdir()
+                   if x.is_dir() and 'temp' not in str(x)]
+        latest = str(sorted(subdirs)[-1])
+        # latest = str(pb_path)
 
         self.vocab_idx, self.idx_vocab = self._load_vocab(vocab_path)
         self.predict_fn = predictor.from_saved_model(latest)
@@ -41,23 +42,24 @@ class bertPredict(object):
 
         receive_lists = self._process_input(inputs, max_seq_length)
         results = []
-        for input_ids, input_mask, segment_ids, label_ids in receive_lists:
+        for input_ids, input_mask, segment_ids, input_value in receive_lists:
             start = time.time()
             result = self.predict_fn(
                 {'input_ids': input_ids,
                  'input_mask': input_mask,
                  'segment_ids': segment_ids,
-                 'label_ids': label_ids}
+                 'input_value': input_value}
             )
             end = time.time()
-            print "cost time is %f" % (end - start) + " seconds"
+            print("cost time is %f" % (end - start) + " seconds")
             results.append(result)
         return results
 
     def _process_input(self, inputs, max_seq_length):
         
         data = []
-        if type(inputs) == str or type(inputs) == unicode:
+        # if type(inputs) == str or type(inputs) == unicode:
+        if type(inputs) == str:
             data.append(inputs)
         elif type(inputs) == list:
             data = data + inputs
@@ -89,8 +91,8 @@ class bertPredict(object):
             assert len(input_ids) == max_seq_length
             assert len(input_mask) == max_seq_length
             assert len(segment_ids) == max_seq_length
-            label_ids = 0
-            tuple_ele = ([input_ids], [input_mask], [segment_ids], [label_ids])
+            input_value = [0.0]
+            tuple_ele = ([input_ids], [input_mask], [segment_ids], [input_value])
             data_list.append(tuple_ele)
         return data_list
 
@@ -111,20 +113,23 @@ class bertPredict(object):
 
 if __name__ == '__main__':
     name_t_start = datetime.now()
-    bert = bertPredict('./model_pb/scene', 'albert_tiny/vocab.txt')
-    inputs = ['你给我记住我是你爸爸', '打开吸顶灯', '我想听你贝加尔湖畔','上升']
+    bert = bertPredict('./model_pb', 'albert_tiny/vocab.txt')
+    inputs = ['我草你妈', '我好开心', '打开吸顶灯','什么狗血剧情']
     # inputs = '你给我记住我是你爸爸'
 
     results = bert.predict(inputs, max_seq_length=128)
     res = []
     for result in results:
-        res.append(result['output'][0])
+        res.append(result['output'][0][0])
 
-    for item in res:
-        item = item.tolist()
-        top2_result, top1_label, top1_prob, top2_label, top2_prob = cls_scene_h.translate_readable_logit(
-            item, 2, scene_config.Data_tup_scene)
-        print("top2_result is :%s" % (top2_result))
+    # for item in res:
+    #     item = item.tolist()
+    #     top2_result, top1_label, top1_prob, top2_label, top2_prob = cls_scene_h.translate_readable_logit(
+    #         item, 2, scene_config.Data_tup_scene)
+    #     print("top2_result is :%s" % (top2_result))
+    for i in range(len(res)):
+        result = "context: {}".format(inputs[i]) + '\t' + "pred: {:6f}".format(res[i])
+        print(result)
     name_t_end = datetime.now()
     print("SceneCLSCNN cost: %f seconds" % (name_t_end - name_t_start).total_seconds())
 
